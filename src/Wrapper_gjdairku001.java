@@ -34,8 +34,8 @@ public class Wrapper_gjdairku001 implements QunarCrawler{
 		//DEL-CAI 2014-08-10
 	    //BKK-CDG 2014-08-19
 		//KWI-DXB
-		searchParam.setDep("KWI");
-		searchParam.setArr("DXB");
+		searchParam.setDep("DEL");
+		searchParam.setArr("CAI");
 		searchParam.setDepDate("2014-08-10");
 		searchParam.setTimeOut("60000");
 		searchParam.setToken("");
@@ -55,6 +55,7 @@ public class Wrapper_gjdairku001 implements QunarCrawler{
 				System.out.println("************" + in.getInfo().toString());
 				System.out.println("++++++++++++" + in.getDetail().toString());
 			}
+			BookingResult bookingResult = new Wrapper_gjdairku001().getBookingInfo(searchParam);
 		}
 		else
 		{
@@ -71,17 +72,17 @@ public class Wrapper_gjdairku001 implements QunarCrawler{
 		bookingInfo.setAction(bookingUrlPre);
 		bookingInfo.setMethod("post");
 		Map<String, String> map = new LinkedHashMap<String, String>();
-		map.put("ro", "0");
-		map.put("from", arg0.getDep());
-		map.put("to", arg0.getArr());
-		map.put("cur", "KWD");
-		map.put("sdate", arg0.getDepDate().replaceAll("-", "/"));
-		map.put("edate", arg0.getDepDate().replaceAll("-", "/"));
-		map.put("adult", "1");
-		map.put("child", "0");
-		map.put("infant", "0");
-		map.put("view", "0");
-		map.put("btnsubmit", "Flight Search");
+		map.put("__EVENTTARGET", "");
+		map.put("__EVENTARGUMENT", "");
+		map.put("__LASTFOCUS", "");
+		map.put("__VIEWSTATE", "");		
+		map.put("ctl00$hdnTabValue", "1");		
+		map.put("ctl00$hdnWWS", "WWS");		
+		map.put("ctl00$tempMachineName", "KUDXBEGWW01PV-wsdl-@@@http://hqlnxprdxnvm39:8080-***-yq45k4h5o5inp35yodn3emp5");		
+		map.put("hdnSelClass", "");		
+		map.put("ctl00$c$CtrlSS$txtDeptDate", "");		
+		map.put("ctl00$c$CtrlSS$resultby", "SR_RBPB");		
+		map.put("ctl00$c$CtrlFltResult$ctl00$ibtnSelect", "Select this flight");	
 		bookingInfo.setInputs(map);		
 		bookingResult.setData(bookingInfo);
 		bookingResult.setRet(true);
