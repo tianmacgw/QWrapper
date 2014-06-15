@@ -34,9 +34,9 @@ public class Wrapper_gjdairku001 implements QunarCrawler{
 		//DEL-CAI 2014-08-10
 	    //BKK-CDG 2014-08-19
 		//KWI-DXB
-		searchParam.setDep("DEL");
-		searchParam.setArr("CAI");
-		searchParam.setDepDate("2014-08-10");
+		searchParam.setDep("BKK");
+		searchParam.setArr("CDG");
+		searchParam.setDepDate("2014-08-19");
 		searchParam.setTimeOut("60000");
 		searchParam.setToken("");
 		searchParam.setWrapperid("gjdairku001");
@@ -65,24 +65,24 @@ public class Wrapper_gjdairku001 implements QunarCrawler{
 	
 	public BookingResult getBookingInfo(FlightSearchParam arg0) {
 
-		String bookingUrlPre = "http://fly.kuwaitairways.com/IBE/SearchResult.aspx";
+		String bookingUrlPre = "http://fly.kuwaitairways.com/SessionHandler.aspx?target=/IBE.aspx&pub=/kw/English&Tab=1&s=&h=&header=true&footer=true";
 		BookingResult bookingResult = new BookingResult();
 		
 		BookingInfo bookingInfo = new BookingInfo();
 		bookingInfo.setAction(bookingUrlPre);
 		bookingInfo.setMethod("post");
 		Map<String, String> map = new LinkedHashMap<String, String>();
-		map.put("__EVENTTARGET", "");
-		map.put("__EVENTARGUMENT", "");
-		map.put("__LASTFOCUS", "");
-		map.put("__VIEWSTATE", "");		
-		map.put("ctl00$hdnTabValue", "1");		
-		map.put("ctl00$hdnWWS", "WWS");		
-		map.put("ctl00$tempMachineName", "KUDXBEGWW01PV-wsdl-@@@http://hqlnxprdxnvm39:8080-***-yq45k4h5o5inp35yodn3emp5");		
-		map.put("hdnSelClass", "");		
-		map.put("ctl00$c$CtrlSS$txtDeptDate", "");		
-		map.put("ctl00$c$CtrlSS$resultby", "SR_RBPB");		
-		map.put("ctl00$c$CtrlFltResult$ctl00$ibtnSelect", "Select this flight");	
+		map.put("resultby", "0");
+		map.put("selacity1", arg0.getArr());
+		map.put("seladate1", "");
+		map.put("seladults", "1");	
+		map.put("selcabinclass", "0");	
+		map.put("selchildren", "0");	
+		map.put("seldcity1", arg0.getDep());	
+		map.put("selddate1", arg0.getDepDate());
+		map.put("selinfants", "0");	
+		map.put("tid", "OW");
+		map.put("promocode", "");
 		bookingInfo.setInputs(map);		
 		bookingResult.setData(bookingInfo);
 		bookingResult.setRet(true);
@@ -149,7 +149,7 @@ public class Wrapper_gjdairku001 implements QunarCrawler{
 					get.addRequestHeader("Cookie",cookie);
 					status = httpClient.executeMethod(get);
 				    html = get.getResponseBodyAsString();
-//				    System.out.println("4. "+status+" ~~~~~~~~~~~~~ "+html);
+				    //System.out.println("4. "+status+" ~~~~~~~~~~~~~ "+html);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -193,31 +193,14 @@ public class Wrapper_gjdairku001 implements QunarCrawler{
 		}
 		
 		//获取到展示数据的table
-		String tablehtml = org.apache.commons.lang.StringUtils.substringBetween(html, "class=\"MainTBL2\">", "<td>&nbsp;</td>\r\n</tr>\r\n\r\n<tr>\r\n<td>&nbsp;</td>");
-		
-		String pricetable = tablehtml;
-		double lowprice = 0.00;
-		String lowpricestr = null;
-		while(pricetable.contains("for 1 passenger(s) (Fare")){
-			Matcher matcherLowPrice = Pattern.compile("Fare .\\w* (\\d*\\.\\d*) \\+").matcher(pricetable);
-			if(matcherLowPrice.find()){
-				System.out.println("单价："+matcherLowPrice.group(1));
-				double tempprice = Double.parseDouble(matcherLowPrice.group(1));
-				if(lowprice == 0.00 || lowprice > tempprice){
-					lowprice = tempprice;
-					lowpricestr = matcherLowPrice.group(0);
-				}
-				pricetable = pricetable.replaceFirst(lowpricestr, "");
-			}
-		}
-		System.out.println("最低价："+lowprice);
+		String tablehtml = org.apache.commons.lang.StringUtils.substringBetween(html, "class=\"MainTBL2\">", "<td>&nbsp;</td>\r\n</tr>\r\n\r\n<tr>\r\n<td>&nbsp;</td>");		
 		
 		String temptable = "";
 
 		try {	
 			List<OneWayFlightInfo> flightList = new ArrayList<OneWayFlightInfo>();
 			
-			
+			int index = 0;
 			while(tablehtml.contains("class=\"BlueHeaderTBL\">")){
 				
 				OneWayFlightInfo baseFlight = new OneWayFlightInfo();
@@ -228,86 +211,83 @@ public class Wrapper_gjdairku001 implements QunarCrawler{
 				boolean depDate = true;
 
 				temptable = org.apache.commons.lang.StringUtils.substringBetween(tablehtml, "class=\"BlueHeaderTBL\">", "</table>\r\n</td>\r\n</tr>\r\n</table>");
-				if(!temptable.contains(lowpricestr)){
-					break;
-				}else{
-					tablehtml = tablehtml.replaceAll(lowpricestr, "");
-				}
-				
-				String[] strs = temptable.split("\r\n");
-				
-				for(String str : strs){		
+				for(int i = 1;;i++){
 					
-					Matcher matcherFlightNo = Pattern.compile("Flight_Info.*>\\b(\\w*\\d*)\\b<").matcher(str);
-					if(matcherFlightNo.find()){
-						System.out.println("flightNo: " + matcherFlightNo.group(1));
-						String flightNo = matcherFlightNo.group(1);
-						flightNoList.add(flightNo);
+					String flightinfo = org.apache.commons.lang.StringUtils.substringBetween(temptable,"ctl00_c_CtrlFltResult_ctl0"+index+"_ctl0"+(i-1)+"_ctl0"+i+"_tdFCode", "</tr>");
+					
+					if(null == flightinfo){
+						break;
 					}
-									
-//					Matcher matcherPlace = Pattern.compile("\\((.*)\\)<br />").matcher(str);
-//					if(matcherPlace.find()){
-//						if(matcherPlace.group(1).contains(arg1.getDep())){
-//							System.out.println("始发地："+matcherPlace.group(1));
-//							seg.setDepairport(matcherPlace.group(1));
-//						}else if(matcherPlace.group(1).contains(arg1.getArr())){
-//							System.out.println("目的地："+matcherPlace.group(1));
-//							seg.setArrairport(matcherPlace.group(1));
-//						}else{
-//							System.out.println("中转地："+matcherPlace.group(1));
-//						}
-//					}
-									
-					Matcher matcherDate = Pattern.compile("\\b(\\d{2}:\\d{2})\\b.*\\b(\\w{3})\\b.*\\b(\\d{2}-\\w{3}-\\d{2})\\b").matcher(str);
-					if(matcherDate.find()){
-						if(depDate){
-							System.out.print("出发时间：");
-							seg.setDeptime(matcherDate.group(1));
-							seg.setDepDate(matcherDate.group(3));
-							flightDetail.setDepdate(new Date(matcherDate.group(3)));
-							depDate = false;
-						}else{
-							System.out.print("到达时间：");
-							seg.setArrtime(matcherDate.group(1));
-							seg.setArrDate(matcherDate.group(3));
+					
+					String[] strs = flightinfo.split("\r\n");
+					
+					for(String str : strs){		
+						
+						Matcher matcherFlightNo = Pattern.compile("Flight_Info.*>\\b(\\w*\\d*)\\b<").matcher(str);
+						if(matcherFlightNo.find()){
+							System.out.println("flightNo: " + matcherFlightNo.group(1));
+							String flightNo = matcherFlightNo.group(1);
+							flightNoList.add(flightNo);
+							seg.setFlightno(flightNo);
 						}
-						System.out.println(matcherDate.group(1)+" "+matcherDate.group(2)+" "+matcherDate.group(3));
-					}
-					
-					Matcher sumprice = Pattern.compile("OrangeText_Bold.>\\b(.\\w*) (\\d*\\.\\d*)\\b<").matcher(str);
-					if(sumprice.find()){
-						System.out.println("总价："+sumprice.group(2));
-						flightDetail.setMonetaryunit(sumprice.group(1));
-					}
-					
-					Matcher matcherPrice = Pattern.compile("Fare (.\\w*) (\\d*\\.\\d*) \\+").matcher(str);
-					if(matcherPrice.find()){
-						System.out.println("单价："+matcherPrice.group(2));
-						flightDetail.setPrice(Double.parseDouble(matcherPrice.group(2)));
-					}
-					
-					Matcher taxes = Pattern.compile("Taxes and Fees (.\\w*) (\\d*\\.\\d*)\\)").matcher(str);
-					if(taxes.find()){
-						System.out.println("税费："+taxes.group(2));
-						flightDetail.setTax(Double.parseDouble(taxes.group(2)));
-					}				
+										
+						Matcher matcherPlace = Pattern.compile("\\((.*)\\)<br />").matcher(str);
+						if(matcherPlace.find()){
+							if(str.contains("deptairport")){
+								System.out.println("始发地："+matcherPlace.group(1));
+								seg.setDepairport(matcherPlace.group(1));
+							}else if(str.contains("arrairport")){
+								System.out.println("目的地："+matcherPlace.group(1));
+								seg.setArrairport(matcherPlace.group(1));
+							}
+						}
+										
+						Matcher matcherDate = Pattern.compile("\\b(\\d{2}:\\d{2})\\b.*\\b(\\w{3})\\b.*\\b(\\d{2}-\\w{3}-\\d{2})\\b").matcher(str);
+						if(matcherDate.find()){
+							if(depDate){
+								System.out.print("出发时间：");
+								seg.setDeptime(matcherDate.group(1));
+								seg.setDepDate(matcherDate.group(3));
+								flightDetail.setDepdate(new Date(matcherDate.group(3)));
+								depDate = false;
+							}else{
+								System.out.print("到达时间：");
+								seg.setArrtime(matcherDate.group(1));
+								seg.setArrDate(matcherDate.group(3));
+							}
+							System.out.println(matcherDate.group(1)+" "+matcherDate.group(2)+" "+matcherDate.group(3));
+						}
+										
+					}					
+					segs.add(seg);
+//					System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+				}
+
+				String priceinfo = org.apache.commons.lang.StringUtils.substringBetween(temptable,"for 1 passenger(s)", "</td>");					
+				Matcher matcherPrice = Pattern.compile("Fare (.\\w*) (\\d*\\.\\d*) \\+").matcher(priceinfo);
+				if(matcherPrice.find()){
+					System.out.println("单价："+matcherPrice.group(2));
+					flightDetail.setPrice(Double.parseDouble(matcherPrice.group(2)));
 				}
 				
-				seg.setDepairport(arg1.getDep());
-				seg.setArrairport(arg1.getArr());
-				seg.setFlightno(flightNoList.toString());
+				Matcher taxes = Pattern.compile("Taxes and Fees (.\\w*) (\\d*\\.\\d*)\\)").matcher(priceinfo);
+				if(taxes.find()){
+					System.out.println("税费："+taxes.group(2));
+					flightDetail.setTax(Double.parseDouble(taxes.group(2)));
+				}
+				
 				flightDetail.setFlightno(flightNoList);								
 				flightDetail.setDepcity(arg1.getDep());
 				flightDetail.setArrcity(arg1.getArr());
-				flightDetail.setWrapperid(arg1.getWrapperid());
-				segs.add(seg);
+				flightDetail.setWrapperid(arg1.getWrapperid());				
 				baseFlight.setDetail(flightDetail);
 				baseFlight.setInfo(segs);
 				flightList.add(baseFlight);
 				
-				System.out.println("\r\n==================================================================================\r\n");
+//				System.out.println("\r\n==================================================================================\r\n");
 				
 				tablehtml = tablehtml.replaceFirst("class=\"BlueHeaderTBL\">", "");
+				index++;
 			}
 
 			result.setRet(true);
