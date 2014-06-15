@@ -24,27 +24,30 @@ import com.qunar.qfwrapper.util.QFGetMethod;
 import com.qunar.qfwrapper.util.QFHttpClient;
 import com.qunar.qfwrapper.util.QFPostMethod;
 
-public class Wrapper_gjdairku001 implements QunarCrawler{
+public class Wrapper_gjsairku001 implements QunarCrawler{
 
 //	private static long strtime = System.currentTimeMillis();	
 	
 	public static void main(String[] args) {
 
 		FlightSearchParam searchParam = new FlightSearchParam();
-		
-		searchParam.setDep("BKK");
-		searchParam.setArr("CDG");
-		searchParam.setDepDate("2014-08-19");
+		//DEL-CAI 2014-08-10
+	    //BKK-CDG 2014-08-19
+		//KWI-DXB
+		searchParam.setDep("KWI");
+		searchParam.setArr("DXB");
+		searchParam.setDepDate("2014-08-10");
+		searchParam.setRetDate("2014-08-20");
 		searchParam.setTimeOut("60000");
 		searchParam.setToken("");
-		searchParam.setWrapperid("gjdairku001");
+		searchParam.setWrapperid("gjsairku001");
 		
-		String html = new  Wrapper_gjdairku001().getHtml(searchParam);
+		String html = new  Wrapper_gjsairku001().getHtml(searchParam);
 //		long getTime = System.currentTimeMillis()-strtime;
 //		System.out.println("获取html用时："+getTime);		
 
 		ProcessResultInfo result = new ProcessResultInfo();
-		result = new  Wrapper_gjdairku001().process(html,searchParam);
+		result = new  Wrapper_gjsairku001().process(html,searchParam);
 //		System.out.println("解析html用时："+(System.currentTimeMillis()-getTime-strtime));
 		if(result.isRet() && result.getStatus().equals(Constants.SUCCESS))
 		{
@@ -71,14 +74,14 @@ public class Wrapper_gjdairku001 implements QunarCrawler{
 		Map<String, String> map = new LinkedHashMap<String, String>();
 		map.put("resultby", "0");
 		map.put("selacity1", arg0.getArr());
-		map.put("seladate1", "");
+		map.put("seladate1", arg0.getRetDate());
 		map.put("seladults", "1");	
 		map.put("selcabinclass", "0");	
 		map.put("selchildren", "0");	
 		map.put("seldcity1", arg0.getDep());	
 		map.put("selddate1", arg0.getDepDate());
 		map.put("selinfants", "0");	
-		map.put("tid", "OW");
+		map.put("tid", "SB");
 		map.put("promocode", "");
 		bookingInfo.setInputs(map);		
 		bookingResult.setData(bookingInfo);
@@ -102,14 +105,14 @@ public class Wrapper_gjdairku001 implements QunarCrawler{
 		    post = new QFPostMethod(postUrl);
 		    NameValuePair resultby = new NameValuePair("resultby", "0");
 		    NameValuePair selacity1 = new NameValuePair("selacity1", arg0.getArr());
-		    NameValuePair seladate1 = new NameValuePair("seladate1", "");
+		    NameValuePair seladate1 = new NameValuePair("seladate1", arg0.getRetDate());
 		    NameValuePair seladults = new NameValuePair("seladults", "1");
 		    NameValuePair selcabinclass = new NameValuePair("selcabinclass", "0");
 		    NameValuePair selchildren = new NameValuePair("selchildren", "0");
 		    NameValuePair seldcity1 = new NameValuePair("seldcity1", arg0.getDep());
 		    NameValuePair selddate1 = new NameValuePair("selddate1", arg0.getDepDate());
 		    NameValuePair selinfants = new NameValuePair("selinfants", "0");
-		    NameValuePair tid = new NameValuePair("tid", "OW");
+		    NameValuePair tid = new NameValuePair("tid", "SB");
 		    NameValuePair promocode = new NameValuePair("promocode", "");
 		    post.setRequestBody(new NameValuePair[]{resultby,selacity1,seladate1,seladults,selcabinclass,selchildren,seldcity1,selddate1,selinfants,tid,promocode});
 		    int status = httpClient.executeMethod(post);
@@ -146,7 +149,7 @@ public class Wrapper_gjdairku001 implements QunarCrawler{
 					get.addRequestHeader("Cookie",cookie);
 					status = httpClient.executeMethod(get);
 				    html = get.getResponseBodyAsString();
-				    //System.out.println("4. "+status+" ~~~~~~~~~~~~~ "+html);
+//				    System.out.println("4. "+status+" ~~~~~~~~~~~~~ "+html);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -197,9 +200,8 @@ public class Wrapper_gjdairku001 implements QunarCrawler{
 		try {	
 			List<OneWayFlightInfo> flightList = new ArrayList<OneWayFlightInfo>();
 			
-			int index = 0;
-			while(tablehtml.contains("class=\"BlueHeaderTBL\">")){
-				
+			int index0 = 0;			
+			while(tablehtml.contains("class=\"BlueHeaderTBL\">")){				
 				OneWayFlightInfo baseFlight = new OneWayFlightInfo();
 				List<FlightSegement> segs = new ArrayList<FlightSegement>();
 				FlightDetail flightDetail = new FlightDetail();
@@ -208,56 +210,62 @@ public class Wrapper_gjdairku001 implements QunarCrawler{
 				boolean depDate = true;
 
 				temptable = org.apache.commons.lang.StringUtils.substringBetween(tablehtml, "class=\"BlueHeaderTBL\">", "</table>\r\n</td>\r\n</tr>\r\n</table>");
-				for(int i = 1;;i++){
-					
-					String flightinfo = org.apache.commons.lang.StringUtils.substringBetween(temptable,"ctl00_c_CtrlFltResult_ctl0"+index+"_ctl0"+(i-1)+"_ctl0"+i+"_tdFCode", "</tr>");
-					
-					if(null == flightinfo){
-						break;
-					}
-					
-					String[] strs = flightinfo.split("\r\n");
-					
-					for(String str : strs){		
+				boolean flag = true;
+				for(int index1 = 0;flag;index1++){
+					for(int i = 1;;i++){						
+						String flightinfo = org.apache.commons.lang.StringUtils.substringBetween(temptable,"ctl00_c_CtrlFltResult_ctl0"+index0+"_ctl0"+index1+"_ctl0"+i+"_tdFCode", "</tr>");
 						
-						Matcher matcherFlightNo = Pattern.compile("Flight_Info.*>\\b(\\w*\\d*)\\b<").matcher(str);
-						if(matcherFlightNo.find()){
-//							System.out.println("flightNo: " + matcherFlightNo.group(1));
-							String flightNo = matcherFlightNo.group(1);
-							flightNoList.add(flightNo);
-							seg.setFlightno(flightNo);
-						}
-										
-						Matcher matcherPlace = Pattern.compile("\\((.*)\\)<br />").matcher(str);
-						if(matcherPlace.find()){
-							if(str.contains("deptairport")){
-//								System.out.println("始发地："+matcherPlace.group(1));
-								seg.setDepairport(matcherPlace.group(1));
-							}else if(str.contains("arrairport")){
-//								System.out.println("目的地："+matcherPlace.group(1));
-								seg.setArrairport(matcherPlace.group(1));
+						if(null == flightinfo){
+							if(i==1){
+								flag = false;
 							}
+							break;
 						}
-										
-						Matcher matcherDate = Pattern.compile("\\b(\\d{2}:\\d{2})\\b.*\\b(\\w{3})\\b.*\\b(\\d{2}-\\w{3}-\\d{2})\\b").matcher(str);
-						if(matcherDate.find()){
-							if(depDate){
-//								System.out.print("出发时间：");
-								seg.setDeptime(matcherDate.group(1));
-								seg.setDepDate(matcherDate.group(3));
-								flightDetail.setDepdate(new Date(matcherDate.group(3)));
-								depDate = false;
-							}else{
-//								System.out.print("到达时间：");
-								seg.setArrtime(matcherDate.group(1));
-								seg.setArrDate(matcherDate.group(3));
+						
+						String[] strs = flightinfo.split("\r\n");
+						
+						for(String str : strs){		
+							
+							Matcher matcherFlightNo = Pattern.compile("Flight_Info.*>\\b(\\w*\\d*)\\b<").matcher(str);
+							if(matcherFlightNo.find()){
+//								System.out.println("flightNo: " + matcherFlightNo.group(1));
+								String flightNo = matcherFlightNo.group(1);
+								flightNoList.add(flightNo);
+								seg.setFlightno(flightNo);
 							}
-//							System.out.println(matcherDate.group(1)+" "+matcherDate.group(2)+" "+matcherDate.group(3));
-						}
-										
-					}					
-					segs.add(seg);
-//					System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+											
+							Matcher matcherPlace = Pattern.compile("\\((.*)\\)<br />").matcher(str);
+							if(matcherPlace.find()){
+								if(str.contains("deptairport")){
+//									System.out.println("始发地："+matcherPlace.group(1));
+									seg.setDepairport(matcherPlace.group(1));
+								}else if(str.contains("arrairport")){
+//									System.out.println("目的地："+matcherPlace.group(1));
+									seg.setArrairport(matcherPlace.group(1));
+								}
+							}
+											
+							Matcher matcherDate = Pattern.compile("\\b(\\d{2}:\\d{2})\\b.*\\b(\\w{3})\\b.*\\b(\\d{2}-\\w{3}-\\d{2})\\b").matcher(str);
+							if(matcherDate.find()){
+								if(depDate){
+//									System.out.print("出发时间：");
+									seg.setDeptime(matcherDate.group(1));
+									seg.setDepDate(matcherDate.group(3));
+									flightDetail.setDepdate(new Date(matcherDate.group(3)));
+									depDate = false;
+								}else{
+//									System.out.print("到达时间：");
+									seg.setArrtime(matcherDate.group(1));
+									seg.setArrDate(matcherDate.group(3));
+								}
+//								System.out.println(matcherDate.group(1)+" "+matcherDate.group(2)+" "+matcherDate.group(3));
+							}
+											
+						}					
+						segs.add(seg);					
+//						System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+					}
+//					System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 				}
 
 				String priceinfo = org.apache.commons.lang.StringUtils.substringBetween(temptable,"for 1 passenger(s)", "</td>");					
@@ -282,9 +290,10 @@ public class Wrapper_gjdairku001 implements QunarCrawler{
 				flightList.add(baseFlight);
 				
 //				System.out.println("\r\n==================================================================================\r\n");
-				
+								
 				tablehtml = tablehtml.replaceFirst("class=\"BlueHeaderTBL\">", "");
-				index++;
+//				System.out.println(tablehtml);
+				index0++;
 			}
 
 			result.setRet(true);
