@@ -251,10 +251,8 @@ public class Wrapper_gjsairku001 implements QunarCrawler{
 							if(matcherDate.find()){
 								if(depDate){
 //									System.out.print("出发时间：");
-									seg.setDeptime(matcherDate.group(1));
-									Date date = new Date(matcherDate.group(3));								
-									seg.setDepDate(sf.format(date));
-									flightDetail.setDepdate(date);
+									seg.setDeptime(matcherDate.group(1));							
+									seg.setDepDate(sf.format(new Date(matcherDate.group(3))));									
 									depDate = false;
 								}else{
 //									System.out.print("到达时间：");
@@ -287,6 +285,7 @@ public class Wrapper_gjsairku001 implements QunarCrawler{
 				
 				flightDetail.setFlightno(flightNoList);								
 				flightDetail.setDepcity(arg1.getDep());
+				flightDetail.setDepdate(sf.parse(arg1.getDepDate()));
 				flightDetail.setArrcity(arg1.getArr());
 				flightDetail.setWrapperid(arg1.getWrapperid());				
 				baseFlight.setDetail(flightDetail);
