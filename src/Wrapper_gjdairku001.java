@@ -35,8 +35,8 @@ public class Wrapper_gjdairku001 implements QunarCrawler{
 		FlightSearchParam searchParam = new FlightSearchParam();
 		
 		searchParam.setDep("KWI");
-		searchParam.setArr("COK");
-		searchParam.setDepDate("2014-08-11");
+		searchParam.setArr("DXB");
+		searchParam.setDepDate("2014-08-10");
 		searchParam.setTimeOut("60000");
 		searchParam.setToken("");
 		searchParam.setWrapperid("gjdairku001");
@@ -210,57 +210,63 @@ public class Wrapper_gjdairku001 implements QunarCrawler{
 				boolean depDate = true;
 
 				temptable = org.apache.commons.lang.StringUtils.substringBetween(tablehtml, "class=\"BlueHeaderTBL\">", "</table>\r\n</td>\r\n</tr>\r\n</table>");
-				for(int i = 1;;i++){
-					
-					String flightinfo = org.apache.commons.lang.StringUtils.substringBetween(temptable,"ctl00_c_CtrlFltResult_ctl0"+index+"_ctl0"+(i-1)+"_ctl0"+i+"_tdFCode", "</tr>");
-					
-					if(null == flightinfo){
-						break;
-					}
-					
-					String[] strs = flightinfo.split("\r\n");
-					
-					for(String str : strs){		
+				boolean flag = true;
+				for(int index1 = 0;flag;index1++){
+					for(int i = 1;;i++){
 						
-						Matcher matcherFlightNo = Pattern.compile("Flight_Info.*>\\b(\\w*\\d*)\\b<").matcher(str);
-						if(matcherFlightNo.find()){
-//							System.out.println("flightNo: " + matcherFlightNo.group(1));
-							String flightNo = matcherFlightNo.group(1);
-							flightNoList.add(flightNo);
-							seg.setFlightno(flightNo);
-						}
-										
-						Matcher matcherPlace = Pattern.compile("\\((.*)\\)<br />").matcher(str);
-						if(matcherPlace.find()){
-							if(str.contains("deptairport")){
-//								System.out.println("始发地："+matcherPlace.group(1));
-								seg.setDepairport(matcherPlace.group(1));
-							}else if(str.contains("arrairport")){
-//								System.out.println("目的地："+matcherPlace.group(1));
-								seg.setArrairport(matcherPlace.group(1));
+						String flightinfo = org.apache.commons.lang.StringUtils.substringBetween(temptable,"ctl00_c_CtrlFltResult_ctl0"+index+"_ctl0"+index1+"_ctl0"+i+"_tdFCode", "</tr>");
+						
+						if(null == flightinfo){
+							if(i==1){
+								flag = false;
 							}
+							break;
 						}
-										
-						Matcher matcherDate = Pattern.compile("\\b(\\d{2}:\\d{2})\\b.*\\b(\\w{3})\\b.*\\b(\\d{2}-\\w{3}-\\d{2})\\b").matcher(str);
-						if(matcherDate.find()){
-							if(depDate){
-//								System.out.print("出发时间：");
-								seg.setDeptime(matcherDate.group(1));
-								Date date = new Date(matcherDate.group(3));								
-								seg.setDepDate(sf.format(date));
-								flightDetail.setDepdate(date);
-								depDate = false;
-							}else{
-//								System.out.print("到达时间：");
-								seg.setArrtime(matcherDate.group(1));
-								seg.setArrDate(sf.format(new Date(matcherDate.group(3))));
+						
+						String[] strs = flightinfo.split("\r\n");
+						
+						for(String str : strs){		
+							
+							Matcher matcherFlightNo = Pattern.compile("Flight_Info.*>\\b(\\w*\\d*)\\b<").matcher(str);
+							if(matcherFlightNo.find()){
+	//							System.out.println("flightNo: " + matcherFlightNo.group(1));
+								String flightNo = matcherFlightNo.group(1);
+								flightNoList.add(flightNo);
+								seg.setFlightno(flightNo);
 							}
-//							System.out.println(matcherDate.group(1)+" "+matcherDate.group(2)+" "+matcherDate.group(3));
-						}
-										
-					}					
-					segs.add(seg);
-//					System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+											
+							Matcher matcherPlace = Pattern.compile("\\((.*)\\)<br />").matcher(str);
+							if(matcherPlace.find()){
+								if(str.contains("deptairport")){
+	//								System.out.println("始发地："+matcherPlace.group(1));
+									seg.setDepairport(matcherPlace.group(1));
+								}else if(str.contains("arrairport")){
+	//								System.out.println("目的地："+matcherPlace.group(1));
+									seg.setArrairport(matcherPlace.group(1));
+								}
+							}
+											
+							Matcher matcherDate = Pattern.compile("\\b(\\d{2}:\\d{2})\\b.*\\b(\\w{3})\\b.*\\b(\\d{2}-\\w{3}-\\d{2})\\b").matcher(str);
+							if(matcherDate.find()){
+								if(depDate){
+	//								System.out.print("出发时间：");
+									seg.setDeptime(matcherDate.group(1));
+									Date date = new Date(matcherDate.group(3));								
+									seg.setDepDate(sf.format(date));
+									flightDetail.setDepdate(date);
+									depDate = false;
+								}else{
+	//								System.out.print("到达时间：");
+									seg.setArrtime(matcherDate.group(1));
+									seg.setArrDate(sf.format(new Date(matcherDate.group(3))));
+								}
+	//							System.out.println(matcherDate.group(1)+" "+matcherDate.group(2)+" "+matcherDate.group(3));
+							}
+											
+						}					
+						segs.add(seg);
+	//					System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+					}
 				}
 
 				String priceinfo = org.apache.commons.lang.StringUtils.substringBetween(temptable,"for 1 passenger(s)", "</td>");					
