@@ -206,13 +206,14 @@ public class Wrapper_gjdairku001 implements QunarCrawler{
 				List<FlightSegement> segs = new ArrayList<FlightSegement>();
 				FlightDetail flightDetail = new FlightDetail();				
 				List<String> flightNoList = new ArrayList<String>();
-				boolean depDate = true;
+				
 
 				temptable = org.apache.commons.lang.StringUtils.substringBetween(tablehtml, "class=\"BlueHeaderTBL\">", "</table>\r\n</td>\r\n</tr>\r\n</table>");
 				boolean flag = true;
 				for(int index1 = 0;flag;index1++){
 					for(int i = 1;;i++){
 						FlightSegement seg = new FlightSegement();
+						boolean depDate = true;
 						String flightinfo = org.apache.commons.lang.StringUtils.substringBetween(temptable,"ctl00_c_CtrlFltResult_ctl0"+index+"_ctl0"+index1+"_ctl0"+i+"_tdFCode", "</tr>");
 						
 						if(null == flightinfo){
