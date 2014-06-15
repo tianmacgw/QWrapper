@@ -1,3 +1,4 @@
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -26,6 +27,7 @@ import com.qunar.qfwrapper.util.QFPostMethod;
 
 public class Wrapper_gjsairku001 implements QunarCrawler{
 
+	public static SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd");
 //	private static long strtime = System.currentTimeMillis();	
 	
 	public static void main(String[] args) {
@@ -250,13 +252,14 @@ public class Wrapper_gjsairku001 implements QunarCrawler{
 								if(depDate){
 //									System.out.print("出发时间：");
 									seg.setDeptime(matcherDate.group(1));
-									seg.setDepDate(matcherDate.group(3));
-									flightDetail.setDepdate(new Date(matcherDate.group(3)));
+									Date date = new Date(matcherDate.group(3));								
+									seg.setDepDate(sf.format(date));
+									flightDetail.setDepdate(date);
 									depDate = false;
 								}else{
 //									System.out.print("到达时间：");
 									seg.setArrtime(matcherDate.group(1));
-									seg.setArrDate(matcherDate.group(3));
+									seg.setArrDate(sf.format(new Date(matcherDate.group(3))));
 								}
 //								System.out.println(matcherDate.group(1)+" "+matcherDate.group(2)+" "+matcherDate.group(3));
 							}
@@ -272,6 +275,7 @@ public class Wrapper_gjsairku001 implements QunarCrawler{
 				Matcher matcherPrice = Pattern.compile("Fare (.\\w*) (\\d*\\.\\d*) \\+").matcher(priceinfo);
 				if(matcherPrice.find()){
 //					System.out.println("单价："+matcherPrice.group(2));
+					flightDetail.setMonetaryunit(matcherPrice.group(1));
 					flightDetail.setPrice(Double.parseDouble(matcherPrice.group(2)));
 				}
 				

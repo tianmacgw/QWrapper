@@ -267,6 +267,7 @@ public class Wrapper_gjdairku001 implements QunarCrawler{
 				Matcher matcherPrice = Pattern.compile("Fare (.\\w*) (\\d*\\.\\d*) \\+").matcher(priceinfo);
 				if(matcherPrice.find()){
 //					System.out.println("单价："+matcherPrice.group(2));
+					flightDetail.setMonetaryunit(matcherPrice.group(1));
 					flightDetail.setPrice(Double.parseDouble(matcherPrice.group(2)));
 				}
 				
