@@ -1,3 +1,4 @@
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -26,15 +27,16 @@ import com.qunar.qfwrapper.util.QFPostMethod;
 
 public class Wrapper_gjdairku001 implements QunarCrawler{
 
+	public static SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd");
 //	private static long strtime = System.currentTimeMillis();	
 	
 	public static void main(String[] args) {
 
 		FlightSearchParam searchParam = new FlightSearchParam();
 		
-		searchParam.setDep("BKK");
-		searchParam.setArr("CDG");
-		searchParam.setDepDate("2014-08-19");
+		searchParam.setDep("KWI");
+		searchParam.setArr("COK");
+		searchParam.setDepDate("2014-08-11");
 		searchParam.setTimeOut("60000");
 		searchParam.setToken("");
 		searchParam.setWrapperid("gjdairku001");
@@ -244,13 +246,14 @@ public class Wrapper_gjdairku001 implements QunarCrawler{
 							if(depDate){
 //								System.out.print("出发时间：");
 								seg.setDeptime(matcherDate.group(1));
-								seg.setDepDate(matcherDate.group(3));
-								flightDetail.setDepdate(new Date(matcherDate.group(3)));
+								Date date = new Date(matcherDate.group(3));								
+								seg.setDepDate(sf.format(date));
+								flightDetail.setDepdate(date);
 								depDate = false;
 							}else{
 //								System.out.print("到达时间：");
 								seg.setArrtime(matcherDate.group(1));
-								seg.setArrDate(matcherDate.group(3));
+								seg.setArrDate(sf.format(new Date(matcherDate.group(3))));
 							}
 //							System.out.println(matcherDate.group(1)+" "+matcherDate.group(2)+" "+matcherDate.group(3));
 						}
