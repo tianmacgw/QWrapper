@@ -34,8 +34,8 @@ public class Wrapper_gjdairku001 implements QunarCrawler{
 
 		FlightSearchParam searchParam = new FlightSearchParam();
 		
-		searchParam.setDep("KWI");
-		searchParam.setArr("DXB");
+		searchParam.setDep("DEL");
+		searchParam.setArr("CAI");
 		searchParam.setDepDate("2014-08-10");
 		searchParam.setTimeOut("60000");
 		searchParam.setToken("");
@@ -204,8 +204,7 @@ public class Wrapper_gjdairku001 implements QunarCrawler{
 				
 				OneWayFlightInfo baseFlight = new OneWayFlightInfo();
 				List<FlightSegement> segs = new ArrayList<FlightSegement>();
-				FlightDetail flightDetail = new FlightDetail();
-				FlightSegement seg = new FlightSegement();
+				FlightDetail flightDetail = new FlightDetail();				
 				List<String> flightNoList = new ArrayList<String>();
 				boolean depDate = true;
 
@@ -213,7 +212,7 @@ public class Wrapper_gjdairku001 implements QunarCrawler{
 				boolean flag = true;
 				for(int index1 = 0;flag;index1++){
 					for(int i = 1;;i++){
-						
+						FlightSegement seg = new FlightSegement();
 						String flightinfo = org.apache.commons.lang.StringUtils.substringBetween(temptable,"ctl00_c_CtrlFltResult_ctl0"+index+"_ctl0"+index1+"_ctl0"+i+"_tdFCode", "</tr>");
 						
 						if(null == flightinfo){
