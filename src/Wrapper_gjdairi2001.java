@@ -40,7 +40,7 @@ public class Wrapper_gjdairi2001 implements QunarCrawler{
 		searchParam.setWrapperid("gjdairi2001");
 		
 		String html = new Wrapper_gjdairi2001().getHtml(searchParam);
-		System.out.println(html);
+//		System.out.println(html);
 //		long getTime = System.currentTimeMillis()-strtime;
 //		System.out.println("获取html用时："+getTime);		
 
@@ -133,10 +133,7 @@ public class Wrapper_gjdairi2001 implements QunarCrawler{
 		
 		//获取到展示数据的table
 		String tablehtml = org.apache.commons.lang.StringUtils.substringBetween(html, "<tbody>", "</tbody>");
-		
-		String moneyUnits = org.apache.commons.lang.StringUtils.substringBetween(html, "class=\"tipoMoneda\">", "</span>");
-		moneyUnits = org.apache.commons.lang.StringUtils.substringBetween(moneyUnits, "<strong>", "</strong>");		
-		
+
 		String temptable = "";
 
 		try {	
@@ -258,7 +255,7 @@ public class Wrapper_gjdairi2001 implements QunarCrawler{
 				priceinfo = priceinfo.replace(" ", "");
 				Matcher matcherPrice = Pattern.compile("id=\"hidden_ida(\\d*)color(\\d*)\"value=\"(\\d*\\.\\d*)/(\\d*\\.\\d*)\".*<span>(\\d*)</span>&(.*);").matcher(priceinfo);
 				if(matcherPrice.find()){
-					System.out.println("单价："+matcherPrice.group(3)+"\t"+moneyUnits);
+					System.out.println("单价："+matcherPrice.group(3));
 					flightDetail.setPrice(Double.parseDouble(matcherPrice.group(3)));
 				}
 				
@@ -272,7 +269,7 @@ public class Wrapper_gjdairi2001 implements QunarCrawler{
 				flightDetail.setDepcity(arg1.getDep());
 				flightDetail.setDepdate(sf.parse(arg1.getDepDate()));
 				flightDetail.setArrcity(arg1.getArr());
-				flightDetail.setMonetaryunit(moneyUnits);
+				flightDetail.setMonetaryunit("EUR");
 				flightDetail.setWrapperid(arg1.getWrapperid());				
 				baseFlight.setDetail(flightDetail);
 				baseFlight.setInfo(segs);
