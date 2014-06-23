@@ -75,7 +75,7 @@ public class Wrapper_gjdairi2001 implements QunarCrawler{
 		
 		BookingInfo bookingInfo = new BookingInfo();
 		bookingInfo.setAction(bookingUrlPre);
-		bookingInfo.setMethod("get");		
+		bookingInfo.setMethod("post");		
 		bookingResult.setData(bookingInfo);
 		bookingResult.setRet(true);
 		return bookingResult;
