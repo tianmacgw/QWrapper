@@ -7,8 +7,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.httpclient.NameValuePair;
-
 import com.qunar.qfwrapper.bean.booking.BookingInfo;
 import com.qunar.qfwrapper.bean.booking.BookingResult;
 import com.qunar.qfwrapper.bean.search.FlightDetail;
@@ -20,7 +18,6 @@ import com.qunar.qfwrapper.constants.Constants;
 import com.qunar.qfwrapper.interfaces.QunarCrawler;
 import com.qunar.qfwrapper.util.QFGetMethod;
 import com.qunar.qfwrapper.util.QFHttpClient;
-import com.qunar.qfwrapper.util.QFPostMethod;
 
 public class Wrapper_gjdairi2001 implements QunarCrawler{
 
@@ -106,9 +103,7 @@ public class Wrapper_gjdairi2001 implements QunarCrawler{
 		    				+"&BEGIN_HOUR_01=0000&BEGIN_HOUR_SPECIFIED=false&BEGIN_YEAR_01=&flexible=false&ADT=1&CHD=0&INF=0&FARE_TYPE=R";		    
 		    
 		    get = new QFGetMethod(getUrl);	
-		    int status = httpClient.executeMethod(get);
-//		    String html = get.getResponseBodyAsString();
-//		    System.out.println(status+" ~~~~~~~~~~~~~ "+html);
+		    httpClient.executeMethod(get);
 		    
 		    return get.getResponseBodyAsString();
 
@@ -150,7 +145,6 @@ public class Wrapper_gjdairi2001 implements QunarCrawler{
 		try {	
 			List<OneWayFlightInfo> flightList = new ArrayList<OneWayFlightInfo>();
 			
-			int index = 0;
 			while(tablehtml.contains("class=\"vuelo_escala\">")){
 				
 				OneWayFlightInfo baseFlight = new OneWayFlightInfo();
@@ -265,7 +259,7 @@ public class Wrapper_gjdairi2001 implements QunarCrawler{
 				String priceinfo = org.apache.commons.lang.StringUtils.substringBetween(temptable,"class=\"cajaPrecioTarifa\"", "<p class=\"txt_ult_plazas\">");
 				priceinfo = priceinfo.replace("\t", "");
 				priceinfo = priceinfo.replace(" ", "");
-				Matcher matcherPrice = Pattern.compile("id=\"hidden_ida(\\d*)color(\\d*)\"value=\"(\\d*\\.\\d*)/(\\d*\\.\\d*)\".*<span>(\\d*)</span>(.*)").matcher(priceinfo);
+				Matcher matcherPrice = Pattern.compile("id=\"hidden_ida(\\d*)color(\\d*)\"value=\"(\\d*\\.\\d*)/(\\d*\\.\\d*)\".*<span>(\\d*)</span>&(.*);").matcher(priceinfo);
 				if(matcherPrice.find()){
 					System.out.println("单价："+matcherPrice.group(3)+"\t"+matcherPrice.group(6));
 					flightDetail.setMonetaryunit(matcherPrice.group(6));
@@ -293,7 +287,6 @@ public class Wrapper_gjdairi2001 implements QunarCrawler{
 				if(transfer){
 					tablehtml = tablehtml.replaceFirst("class=\"vuelo_escala\">", "");					
 				}
-				index++;
 			}
 
 			result.setRet(true);
