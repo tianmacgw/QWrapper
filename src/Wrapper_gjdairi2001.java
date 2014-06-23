@@ -32,9 +32,9 @@ public class Wrapper_gjdairi2001 implements QunarCrawler{
 		//ALC-CPH 2014-06-30
 		//AMS-ATH 2014-09-13
 		//ALC-DUB 2014-06-30
-		searchParam.setDep("ALC");
+		searchParam.setDep("AMS");
 		searchParam.setArr("MAD");
-		searchParam.setDepDate("2014-06-30");
+		searchParam.setDepDate("2014-07-01");
 		searchParam.setTimeOut("60000");
 		searchParam.setToken("");
 		searchParam.setWrapperid("gjdairi2001");
@@ -95,7 +95,7 @@ public class Wrapper_gjdairi2001 implements QunarCrawler{
 		    				+"&menuId=01000000000000&quadrigam=&isPopup=&menuRP=&firstLoad=1&OID=0&BEGIN_DATE_OFFER=&END_DATE_OFFER=&originCountry=ES"
 		    				+"&BEGIN_CITY_01="+arg0.getDep()+"&END_CITY_01="+arg0.getArr()+"&TRIP_TYPE=1&BEGIN_DAY_01="+depDay+"&BEGIN_MONTH_01="+depMonth
 		    				+"&BEGIN_HOUR_01=0000&BEGIN_HOUR_SPECIFIED=false&BEGIN_YEAR_01=&flexible=false&ADT=1&CHD=0&INF=0&FARE_TYPE=R";		    
-		    
+		    		    
 		    get = new QFGetMethod(getUrl);	
 		    httpClient.executeMethod(get);
 		    
@@ -125,7 +125,7 @@ public class Wrapper_gjdairi2001 implements QunarCrawler{
 			return result;			
 		}		
 		//需要有明显的提示语句，才能判断是否INVALID_DATE|INVALID_AIRLINE|NO_RESULT
-		if (html.contains("Sorry, we were unable to process your request due to either no operating flight or no seats available. Please select a different search option.")) {
+		if (html.contains("No se han encontrado vuelos disponibles en la fecha solicitada.") || html.contains("No fue posible encontrar disponibilidad.")) {
 			result.setRet(false);
 			result.setStatus(Constants.INVALID_DATE);
 			return result;			
