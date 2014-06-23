@@ -62,26 +62,20 @@ public class Wrapper_gjdairi2001 implements QunarCrawler{
 	}
 	
 	public BookingResult getBookingInfo(FlightSearchParam arg0) {
-
-		String bookingUrlPre = "http://fly.kuwaitairways.com/SessionHandler.aspx?target=/IBE.aspx&pub=/kw/English&Tab=1&s=&h=&header=true&footer=true";
+		
+		String depDate = arg0.getDepDate().replace("-", "");
+		String depDay = depDate.substring(6,8);
+		String depMonth = depDate.substring(0,6);			    
+		
+		String bookingUrlPre = "http://www.iberiaexpress.com/airlines/web/bookingForm.do?BV_EngineID=ccckadgdfmligjgcfngcfkmdfhmdfln.0&tabId=0&prgOid=&chOid="
+							+"&menuId=01000000000000&quadrigam=&isPopup=&menuRP=&firstLoad=1&OID=0&BEGIN_DATE_OFFER=&END_DATE_OFFER=&originCountry=ES"
+							+"&BEGIN_CITY_01="+arg0.getDep()+"&END_CITY_01="+arg0.getArr()+"&TRIP_TYPE=1&BEGIN_DAY_01="+depDay+"&BEGIN_MONTH_01="+depMonth
+							+"&BEGIN_HOUR_01=0000&BEGIN_HOUR_SPECIFIED=false&BEGIN_YEAR_01=&flexible=false&ADT=1&CHD=0&INF=0&FARE_TYPE=R";
 		BookingResult bookingResult = new BookingResult();
 		
 		BookingInfo bookingInfo = new BookingInfo();
 		bookingInfo.setAction(bookingUrlPre);
-		bookingInfo.setMethod("post");
-		Map<String, String> map = new LinkedHashMap<String, String>();
-		map.put("resultby", "0");
-		map.put("selacity1", arg0.getArr());
-		map.put("seladate1", "");
-		map.put("seladults", "1");	
-		map.put("selcabinclass", "0");	
-		map.put("selchildren", "0");	
-		map.put("seldcity1", arg0.getDep());	
-		map.put("selddate1", arg0.getDepDate());
-		map.put("selinfants", "0");	
-		map.put("tid", "OW");
-		map.put("promocode", "");
-		bookingInfo.setInputs(map);		
+		bookingInfo.setMethod("get");		
 		bookingResult.setData(bookingInfo);
 		bookingResult.setRet(true);
 		return bookingResult;
