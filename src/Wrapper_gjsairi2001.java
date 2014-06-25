@@ -47,6 +47,7 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 		searchParam.setArr("ALC");
 		searchParam.setDepDate("2014-06-26");
 		searchParam.setRetDate("2014-06-30");
+		
 		searchParam.setTimeOut("60000");
 		searchParam.setToken("");
 		searchParam.setWrapperid("gjsairi2001");
@@ -180,7 +181,6 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 				temptable = org.apache.commons.lang.StringUtils.substringBetween(tablehtml, "class=\"vuelo_escala\">", "</tr>");
 				temptable = temptable.replaceAll("\n", "");
 				FlightSegement seg = new FlightSegement();
-				boolean depDate = true;
 				String flightinfo = org.apache.commons.lang.StringUtils.substringBetween(temptable,"<input", "<td class");						
 				if(null == flightinfo){
 					break;
@@ -196,8 +196,31 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 					seg.setFlightno(flightNo);
 				}
 				
-				Matcher matcher = Pattern.compile("type=\"hidden\"value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>\\w*\\((\\w{3})\\)").matcher(flightinfo);
-				while(matcher.find()){
+				String depStr = org.apache.commons.lang.StringUtils.substringBetween(flightinfo,"type=\"hidden\"", "</td><td>");	
+				Matcher depMatcher = Pattern.compile("value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>.*\\((\\w{3})\\)").matcher(depStr);
+				if(depMatcher.find()){
+					System.out.println("出发时间："+depMatcher.group(1)+"\t"+depMatcher.group(2));
+					seg.setDeptime(depMatcher.group(2));
+					Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(depMatcher.group(1));
+					seg.setDepDate(sf.format(date));
+					System.out.println("始发地："+depMatcher.group(3));
+					seg.setDepairport(depMatcher.group(3));
+				}
+				
+				flightinfo = flightinfo.replaceFirst("type=\"hidden\"", "");
+				String arrStr = org.apache.commons.lang.StringUtils.substringBetween(flightinfo,"type=\"hidden\"", "</td><td>");					
+				Matcher arrMatcher = Pattern.compile("value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>.*\\((\\w{3})\\)").matcher(arrStr);
+				if(arrMatcher.find()){
+					System.out.println("到达时间："+arrMatcher.group(1)+"\t"+arrMatcher.group(2));
+					seg.setArrtime(arrMatcher.group(2));
+					Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(arrMatcher.group(1));
+					seg.setArrDate(sf.format(date));
+					System.out.println("目的地："+arrMatcher.group(3));
+					seg.setArrairport(arrMatcher.group(3));
+				}
+				
+				
+				/*while(matcher.find()){
 					System.out.println("------------------------------------------------------------------------------");							
 					if(depDate){
 						System.out.println("出发时间："+matcher.group(1)+"\t"+matcher.group(2));
@@ -215,7 +238,7 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 						System.out.println("目的地："+matcher.group(3));
 						seg.setArrairport(matcher.group(3));
 					}
-				}												
+				}*/	
 				
 				segs.add(seg);
 				
@@ -229,7 +252,6 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 						transferhtml = transferhtml.replaceAll("\t", "");
 						transferhtml = transferhtml.replaceAll(" ", "");
 						FlightSegement transferSeg = new FlightSegement();
-						boolean transferDepDate = true;
 						String transferFlightinfo = org.apache.commons.lang.StringUtils.substringBetween(transferhtml,"<input", "</td></tr>");						
 						if(null == transferFlightinfo){
 							break;
@@ -243,7 +265,30 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 							transferSeg.setFlightno(flightNo);
 						}
 						
-						Matcher transferMatcher = Pattern.compile("type=\"hidden\"value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>\\w*\\((\\w{3})\\)").matcher(transferFlightinfo);
+						String depTransferStr = org.apache.commons.lang.StringUtils.substringBetween(transferFlightinfo,"type=\"hidden\"", "</td><td>");	
+						Matcher depTransferMatcher = Pattern.compile("value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>.*\\((\\w{3})\\)").matcher(depTransferStr);
+						if(depTransferMatcher.find()){
+							System.out.println("出发时间："+depTransferMatcher.group(1)+"\t"+depTransferMatcher.group(2));
+							transferSeg.setDeptime(depTransferMatcher.group(2));
+							Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(depTransferMatcher.group(1));
+							transferSeg.setDepDate(sf.format(date));
+							System.out.println("始发地："+depTransferMatcher.group(3));
+							transferSeg.setDepairport(depTransferMatcher.group(3));
+						}
+						
+						transferFlightinfo = transferFlightinfo.replaceFirst("type=\"hidden\"", "");
+						String arrTransferStr = org.apache.commons.lang.StringUtils.substringBetween(transferFlightinfo,"type=\"hidden\"", "</td><td>");					
+						Matcher arrTransferMatcher = Pattern.compile("value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>.*\\((\\w{3})\\)").matcher(arrTransferStr);
+						if(arrTransferMatcher.find()){
+							System.out.println("到达时间："+arrTransferMatcher.group(1)+"\t"+arrTransferMatcher.group(2));
+							transferSeg.setArrtime(arrTransferMatcher.group(2));
+							Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(arrTransferMatcher.group(1));
+							transferSeg.setArrDate(sf.format(date));
+							System.out.println("目的地："+arrTransferMatcher.group(3));
+							transferSeg.setArrairport(arrTransferMatcher.group(3));
+						}
+						
+						/*Matcher transferMatcher = Pattern.compile("type=\"hidden\"value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>\\w*\\((\\w{3})\\)").matcher(transferFlightinfo);
 						while(transferMatcher.find()){
 							System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");							
 							if(transferDepDate){
@@ -262,7 +307,7 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 								System.out.println("目的地："+transferMatcher.group(3));
 								transferSeg.setArrairport(transferMatcher.group(3));
 							}
-						}												
+						}*/												
 						
 						segs.add(transferSeg);
 						transfer = true;
@@ -303,7 +348,6 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 					retTempTable = org.apache.commons.lang.StringUtils.substringBetween(rethtml, "class=\"vuelo_escala\">", "</tr>");
 					retTempTable = retTempTable.replaceAll("\n", "");
 					FlightSegement retSeg = new FlightSegement();
-					boolean retDepDate = true;
 					String retFlightinfo = org.apache.commons.lang.StringUtils.substringBetween(retTempTable,"<input", "<td class");						
 					if(null == retFlightinfo){
 						break;
@@ -319,7 +363,29 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 						retSeg.setFlightno(flightNo);
 					}
 					
-					Matcher retMatcher = Pattern.compile("type=\"hidden\"value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>\\w*\\((\\w{3})\\)").matcher(retFlightinfo);
+					String depRetStr = org.apache.commons.lang.StringUtils.substringBetween(retFlightinfo,"type=\"hidden\"", "</td><td>");	
+					Matcher depRetMatcher = Pattern.compile("value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>.*\\((\\w{3})\\)").matcher(depRetStr);
+					if(depRetMatcher.find()){
+						System.out.println("出发时间："+depRetMatcher.group(1)+"\t"+depRetMatcher.group(2));
+						retSeg.setDeptime(depRetMatcher.group(2));
+						Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(depRetMatcher.group(1));
+						retSeg.setDepDate(sf.format(date));
+						System.out.println("始发地："+depRetMatcher.group(3));
+						retSeg.setDepairport(depRetMatcher.group(3));
+					}
+					retFlightinfo = retFlightinfo.replaceFirst("type=\"hidden\"", "");
+					String arrRetStr = org.apache.commons.lang.StringUtils.substringBetween(retFlightinfo,"type=\"hidden\"", "</td><td>");					
+					Matcher arrRetMatcher = Pattern.compile("value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>.*\\((\\w{3})\\)").matcher(arrRetStr);
+					if(arrRetMatcher.find()){
+						System.out.println("到达时间："+arrRetMatcher.group(1)+"\t"+arrRetMatcher.group(2));
+						retSeg.setArrtime(arrRetMatcher.group(2));
+						Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(arrRetMatcher.group(1));
+						retSeg.setArrDate(sf.format(date));
+						System.out.println("目的地："+arrRetMatcher.group(3));
+						retSeg.setArrairport(arrRetMatcher.group(3));
+					}
+					
+					/*Matcher retMatcher = Pattern.compile("type=\"hidden\"value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>\\w*\\((\\w{3})\\)").matcher(retFlightinfo);
 					while(retMatcher.find()){
 						System.out.println("------------------------------------------------------------------------------");							
 						if(retDepDate){
@@ -338,7 +404,7 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 							System.out.println("目的地："+retMatcher.group(3));
 							retSeg.setArrairport(retMatcher.group(3));
 						}
-					}												
+					}*/										
 					
 					retSegs.add(retSeg);
 					
@@ -352,7 +418,6 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 							retTransferhtml = retTransferhtml.replaceAll("\t", "");
 							retTransferhtml = retTransferhtml.replaceAll(" ", "");
 							FlightSegement retTransferSeg = new FlightSegement();
-							boolean retTransferDepDate = true;
 							String retTransferFlightinfo = org.apache.commons.lang.StringUtils.substringBetween(retTransferhtml,"<input", "</td></tr>");						
 							if(null == retTransferFlightinfo){
 								break;
@@ -366,7 +431,30 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 								retTransferSeg.setFlightno(flightNo);
 							}
 							
-							Matcher retTransferMatcher = Pattern.compile("type=\"hidden\"value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>\\w*\\((\\w{3})\\)").matcher(retTransferFlightinfo);
+							String depRetTransferStr = org.apache.commons.lang.StringUtils.substringBetween(retTransferFlightinfo,"type=\"hidden\"", "</td><td>");	
+							Matcher depRetTransferMatcher = Pattern.compile("value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>.*\\((\\w{3})\\)").matcher(depRetTransferStr);
+							if(depRetTransferMatcher.find()){
+								System.out.println("出发时间："+depRetTransferMatcher.group(1)+"\t"+depRetTransferMatcher.group(2));
+								retTransferSeg.setDeptime(depRetTransferMatcher.group(2));
+								Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(depRetTransferMatcher.group(1));
+								retTransferSeg.setDepDate(sf.format(date));
+								System.out.println("始发地："+depRetTransferMatcher.group(3));
+								retTransferSeg.setDepairport(depRetTransferMatcher.group(3));
+							}
+							retTransferFlightinfo = retTransferFlightinfo.replaceFirst("type=\"hidden\"", "");
+							String arrRetTransferStr = org.apache.commons.lang.StringUtils.substringBetween(retTransferFlightinfo,"type=\"hidden\"", "</td><td>");					
+							Matcher arrRetTransferMatcher = Pattern.compile("value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>.*\\((\\w{3})\\)").matcher(arrRetTransferStr);
+							if(arrRetTransferMatcher.find()){
+								System.out.println("到达时间："+arrRetTransferMatcher.group(1)+"\t"+arrRetTransferMatcher.group(2));
+								retTransferSeg.setArrtime(arrRetTransferMatcher.group(2));
+								Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(arrRetTransferMatcher.group(1));
+								retTransferSeg.setArrDate(sf.format(date));
+								System.out.println("目的地："+arrRetTransferMatcher.group(3));
+								retTransferSeg.setArrairport(arrRetTransferMatcher.group(3));
+							}
+							
+							
+							/*Matcher retTransferMatcher = Pattern.compile("type=\"hidden\"value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>\\w*\\((\\w{3})\\)").matcher(retTransferFlightinfo);
 							while(retTransferMatcher.find()){
 								System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");							
 								if(retTransferDepDate){
@@ -385,7 +473,7 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 									System.out.println("目的地："+retTransferMatcher.group(3));
 									retTransferSeg.setArrairport(retTransferMatcher.group(3));
 								}
-							}												
+							}*/												
 							
 							retSegs.add(retTransferSeg);
 							retTransfer = true;
