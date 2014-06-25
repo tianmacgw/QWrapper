@@ -36,7 +36,14 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 //		searchParam.setArr("ALC");
 //		searchParam.setDepDate("2014-06-26");
 //		searchParam.setRetDate("2014-06-30");
-		searchParam.setDep("DUB");
+		
+//		searchParam.setDep("DUB");
+//		searchParam.setArr("ALC");
+//		searchParam.setDepDate("2014-06-26");
+//		searchParam.setRetDate("2014-06-30");
+//		searchParam.setTimeOut("60000");
+		
+		searchParam.setDep("DUS");
 		searchParam.setArr("ALC");
 		searchParam.setDepDate("2014-06-26");
 		searchParam.setRetDate("2014-06-30");
@@ -157,7 +164,6 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 		
 		//获取到展示数据的table
 		String tablehtml = org.apache.commons.lang.StringUtils.substringBetween(html, "<table id=\"tabla_ida\"", "</tbody>");
-		String rethtml = org.apache.commons.lang.StringUtils.substringBetween(html, "<table id=\"tabla_vuelta\"", "</tbody>");
 		
 		String temptable = "";
 
@@ -173,105 +179,96 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 				
 				temptable = org.apache.commons.lang.StringUtils.substringBetween(tablehtml, "class=\"vuelo_escala\">", "</tr>");
 				temptable = temptable.replaceAll("\n", "");
-//				boolean flag = true;
-//				for(int index1 = 0;flag;index1++){
-//					for(int i = 1;;i++){
-						FlightSegement seg = new FlightSegement();
-						boolean depDate = true;
-						String flightinfo = org.apache.commons.lang.StringUtils.substringBetween(temptable,"<input", "<td class");						
-						if(null == flightinfo){
-//							if(i==1){
-//								flag = false;
-//							}
+				FlightSegement seg = new FlightSegement();
+				boolean depDate = true;
+				String flightinfo = org.apache.commons.lang.StringUtils.substringBetween(temptable,"<input", "<td class");						
+				if(null == flightinfo){
+					break;
+				}
+				flightinfo = flightinfo.replaceAll("\t", "");
+				flightinfo = flightinfo.replaceAll(" ", "");
+				
+				Matcher matcherFlightNo = Pattern.compile("id=\"idNumFlight_.*\"value=\"(.*)\"").matcher(flightinfo);
+				if(matcherFlightNo.find()){
+					System.out.println("flightNo: " + matcherFlightNo.group(1));
+					String flightNo = matcherFlightNo.group(1);
+					flightNoList.add(flightNo);
+					seg.setFlightno(flightNo);
+				}
+				
+				Matcher matcher = Pattern.compile("type=\"hidden\"value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>\\w*\\((\\w{3})\\)").matcher(flightinfo);
+				while(matcher.find()){
+					System.out.println("------------------------------------------------------------------------------");							
+					if(depDate){
+						System.out.println("出发时间："+matcher.group(1)+"\t"+matcher.group(2));
+						seg.setDeptime(matcher.group(2));
+						Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(matcher.group(1));
+						seg.setDepDate(sf.format(date));
+						System.out.println("始发地："+matcher.group(3));
+						seg.setDepairport(matcher.group(3));
+						depDate = false;
+					}else{
+						System.out.println("到达时间："+matcher.group(1)+"\t"+matcher.group(2));
+						seg.setArrtime(matcher.group(2));
+						Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(matcher.group(1));
+						seg.setArrDate(sf.format(date));
+						System.out.println("目的地："+matcher.group(3));
+						seg.setArrairport(matcher.group(3));
+					}
+				}												
+				
+				segs.add(seg);
+				
+				boolean transfer = false; //是否中转
+				if(flightinfo.contains("<inputtype=\"hidden\"value=\"null\"/>")){
+					System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&中转：");							
+					String transferhtml = tablehtml.replaceFirst("class=\"vuelo_escala\">", "");							
+					if(transferhtml.contains("class=\"vuelo_escala\">")){
+						transferhtml = org.apache.commons.lang.StringUtils.substringBetween(transferhtml, "class=\"vuelo_escala\">", "<tr class");
+						transferhtml = transferhtml.replaceAll("\n", "");
+						transferhtml = transferhtml.replaceAll("\t", "");
+						transferhtml = transferhtml.replaceAll(" ", "");
+						FlightSegement transferSeg = new FlightSegement();
+						boolean transferDepDate = true;
+						String transferFlightinfo = org.apache.commons.lang.StringUtils.substringBetween(transferhtml,"<input", "</td></tr>");						
+						if(null == transferFlightinfo){
 							break;
 						}
-						flightinfo = flightinfo.replaceAll("\t", "");
-						flightinfo = flightinfo.replaceAll(" ", "");
 						
-						Matcher matcherFlightNo = Pattern.compile("id=\"idNumFlight_.*\"value=\"(.*)\"").matcher(flightinfo);
-						if(matcherFlightNo.find()){
-							System.out.println("flightNo: " + matcherFlightNo.group(1));
-							String flightNo = matcherFlightNo.group(1);
+						Matcher transferMatcherFlightNo = Pattern.compile("id=\"idNumFlight_.*\"value=\"(.*)\"").matcher(transferFlightinfo);
+						if(transferMatcherFlightNo.find()){
+							System.out.println("flightNo: " + transferMatcherFlightNo.group(1));
+							String flightNo = transferMatcherFlightNo.group(1);
 							flightNoList.add(flightNo);
-							seg.setFlightno(flightNo);
+							transferSeg.setFlightno(flightNo);
 						}
 						
-						Matcher matcher = Pattern.compile("type=\"hidden\"value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>\\w*\\((\\w{3})\\)").matcher(flightinfo);
-						while(matcher.find()){
-							System.out.println("------------------------------------------------------------------------------");							
-							if(depDate){
-								System.out.println("出发时间："+matcher.group(1)+"\t"+matcher.group(2));
-								seg.setDeptime(matcher.group(2));
-								Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(matcher.group(1));
-								seg.setDepDate(sf.format(date));
-								System.out.println("始发地："+matcher.group(3));
-								seg.setDepairport(matcher.group(3));
-								depDate = false;
+						Matcher transferMatcher = Pattern.compile("type=\"hidden\"value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>\\w*\\((\\w{3})\\)").matcher(transferFlightinfo);
+						while(transferMatcher.find()){
+							System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");							
+							if(transferDepDate){
+								System.out.println("出发时间："+transferMatcher.group(1)+"\t"+transferMatcher.group(2));
+								transferSeg.setDeptime(transferMatcher.group(2));
+								Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(transferMatcher.group(1));
+								transferSeg.setDepDate(sf.format(date));
+								System.out.println("始发地："+transferMatcher.group(3));
+								transferSeg.setDepairport(transferMatcher.group(3));
+								transferDepDate = false;
 							}else{
-								System.out.println("到达时间："+matcher.group(1)+"\t"+matcher.group(2));
-								seg.setArrtime(matcher.group(2));
-								Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(matcher.group(1));
-								seg.setArrDate(sf.format(date));
-								System.out.println("目的地："+matcher.group(3));
-								seg.setArrairport(matcher.group(3));
+								System.out.println("到达时间："+transferMatcher.group(1)+"\t"+transferMatcher.group(2));
+								transferSeg.setArrtime(transferMatcher.group(2));
+								Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(transferMatcher.group(1));
+								transferSeg.setArrDate(sf.format(date));
+								System.out.println("目的地："+transferMatcher.group(3));
+								transferSeg.setArrairport(transferMatcher.group(3));
 							}
 						}												
 						
-						segs.add(seg);
-						
-						boolean transfer = false; //是否中转
-						if(flightinfo.contains("<inputtype=\"hidden\"value=\"null\"/>")){
-							System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&中转：");							
-							String transferhtml = tablehtml.replaceFirst("class=\"vuelo_escala\">", "");							
-							if(transferhtml.contains("class=\"vuelo_escala\">")){
-								transferhtml = org.apache.commons.lang.StringUtils.substringBetween(transferhtml, "class=\"vuelo_escala\">", "<tr class");
-								transferhtml = transferhtml.replaceAll("\n", "");
-								transferhtml = transferhtml.replaceAll("\t", "");
-								transferhtml = transferhtml.replaceAll(" ", "");
-								FlightSegement transferSeg = new FlightSegement();
-								boolean transferDepDate = true;
-								String transferFlightinfo = org.apache.commons.lang.StringUtils.substringBetween(transferhtml,"<input", "</td></tr>");						
-								if(null == transferFlightinfo){
-									break;
-								}
-								
-								Matcher transferMatcherFlightNo = Pattern.compile("id=\"idNumFlight_.*\"value=\"(.*)\"").matcher(transferFlightinfo);
-								if(transferMatcherFlightNo.find()){
-									System.out.println("flightNo: " + transferMatcherFlightNo.group(1));
-									String flightNo = transferMatcherFlightNo.group(1);
-									flightNoList.add(flightNo);
-									transferSeg.setFlightno(flightNo);
-								}
-								
-								Matcher transferMatcher = Pattern.compile("type=\"hidden\"value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>\\w*\\((\\w{3})\\)").matcher(transferFlightinfo);
-								while(transferMatcher.find()){
-									System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");							
-									if(transferDepDate){
-										System.out.println("出发时间："+transferMatcher.group(1)+"\t"+transferMatcher.group(2));
-										transferSeg.setDeptime(transferMatcher.group(2));
-										Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(transferMatcher.group(1));
-										transferSeg.setDepDate(sf.format(date));
-										System.out.println("始发地："+transferMatcher.group(3));
-										transferSeg.setDepairport(transferMatcher.group(3));
-										transferDepDate = false;
-									}else{
-										System.out.println("到达时间："+transferMatcher.group(1)+"\t"+transferMatcher.group(2));
-										transferSeg.setArrtime(transferMatcher.group(2));
-										Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(transferMatcher.group(1));
-										transferSeg.setArrDate(sf.format(date));
-										System.out.println("目的地："+transferMatcher.group(3));
-										transferSeg.setArrairport(transferMatcher.group(3));
-									}
-								}												
-								
-								segs.add(transferSeg);
-								transfer = true;
-							}
-						}
-						
-						System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-//					}
-//				}
+						segs.add(transferSeg);
+						transfer = true;
+					}
+				}
+				System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
 				String priceinfo = org.apache.commons.lang.StringUtils.substringBetween(temptable,"class=\"cajaPrecioTarifa\"", "<p class=\"txt_ult_plazas\">");
 				priceinfo = priceinfo.replace("\t", "");
@@ -281,41 +278,8 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 					System.out.println("单价："+matcherPrice.group(4));
 					flightDetail.setPrice(Double.parseDouble(matcherPrice.group(4)));
 				}
-				
-				/*Matcher taxes = Pattern.compile("Taxes and Fees (.\\w*) (\\d*\\.\\d*)\\)").matcher(priceinfo);
-				if(taxes.find()){
-//					System.out.println("税费："+taxes.group(2));
-					flightDetail.setTax(Double.parseDouble(taxes.group(2)));
-				}*/
-				
-//				flightDetail.setFlightno(flightNoList);								
-//				flightDetail.setDepcity(arg1.getDep());
-//				flightDetail.setDepdate(sf.parse(arg1.getDepDate()));
-//				flightDetail.setArrcity(arg1.getArr());
-//				flightDetail.setMonetaryunit("EUR");
-//				flightDetail.setWrapperid(arg1.getWrapperid());				
-//				baseFlight.setDetail(flightDetail);
-//				baseFlight.setInfo(segs);
-//				flightList.add(baseFlight);
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
+
+				String rethtml = org.apache.commons.lang.StringUtils.substringBetween(html, "<table id=\"tabla_vuelta\"", "</tbody>");
 				String retTempTable = "";
 				
 				while(rethtml.contains("class=\"vuelo_escala\">")){
@@ -324,111 +288,110 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 					List<FlightSegement> retSegs = new ArrayList<FlightSegement>();
 					FlightDetail retFlightDetail = new FlightDetail();				
 					List<String> retFlightNoList = new ArrayList<String>();
-					retSegs = segs;
-					retFlightNoList = flightNoList;
-					retFlightDetail = flightDetail;
+					retSegs.addAll(segs);
+					retFlightNoList.addAll(flightNoList);
 					
-					
-					
+					retFlightDetail.setDepcity(flightDetail.getDepcity());
+					retFlightDetail.setArrcity(flightDetail.getArrcity());
+					retFlightDetail.setDepdate(flightDetail.getDepdate());
+					retFlightDetail.setFlightno(flightDetail.getFlightno());
+					retFlightDetail.setMonetaryunit(flightDetail.getMonetaryunit());
+					retFlightDetail.setTax(flightDetail.getTax());
+					retFlightDetail.setPrice(flightDetail.getPrice());
+					retFlightDetail.setWrapperid(flightDetail.getWrapperid());
+
 					retTempTable = org.apache.commons.lang.StringUtils.substringBetween(rethtml, "class=\"vuelo_escala\">", "</tr>");
-//					System.out.println(retTempTable);
 					retTempTable = retTempTable.replaceAll("\n", "");
-//					boolean flag = true;
-//					for(int index1 = 0;flag;index1++){
-//						for(int i = 1;;i++){
-							FlightSegement retSeg = new FlightSegement();
-							boolean retDepDate = true;
-							String retFlightinfo = org.apache.commons.lang.StringUtils.substringBetween(retTempTable,"<input", "<td class");						
-							if(null == retFlightinfo){
+					FlightSegement retSeg = new FlightSegement();
+					boolean retDepDate = true;
+					String retFlightinfo = org.apache.commons.lang.StringUtils.substringBetween(retTempTable,"<input", "<td class");						
+					if(null == retFlightinfo){
+						break;
+					}
+					retFlightinfo = retFlightinfo.replaceAll("\t", "");
+					retFlightinfo = retFlightinfo.replaceAll(" ", "");
+					
+					Matcher retMatcherFlightNo = Pattern.compile("id=\"idNumFlight_.*\"value=\"(.*)\"").matcher(retFlightinfo);
+					if(retMatcherFlightNo.find()){
+						System.out.println("flightNo: " + retMatcherFlightNo.group(1));
+						String flightNo = retMatcherFlightNo.group(1);
+						retFlightNoList.add(flightNo);
+						retSeg.setFlightno(flightNo);
+					}
+					
+					Matcher retMatcher = Pattern.compile("type=\"hidden\"value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>\\w*\\((\\w{3})\\)").matcher(retFlightinfo);
+					while(retMatcher.find()){
+						System.out.println("------------------------------------------------------------------------------");							
+						if(retDepDate){
+							System.out.println("出发时间："+retMatcher.group(1)+"\t"+retMatcher.group(2));
+							retSeg.setDeptime(retMatcher.group(2));
+							Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(retMatcher.group(1));
+							retSeg.setDepDate(sf.format(date));
+							System.out.println("始发地："+retMatcher.group(3));
+							retSeg.setDepairport(retMatcher.group(3));
+							retDepDate = false;
+						}else{
+							System.out.println("到达时间："+retMatcher.group(1)+"\t"+retMatcher.group(2));
+							retSeg.setArrtime(retMatcher.group(2));
+							Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(retMatcher.group(1));
+							retSeg.setArrDate(sf.format(date));
+							System.out.println("目的地："+retMatcher.group(3));
+							retSeg.setArrairport(retMatcher.group(3));
+						}
+					}												
+					
+					retSegs.add(retSeg);
+					
+					boolean retTransfer = false; //是否中转
+					if(retFlightinfo.contains("<inputtype=\"hidden\"value=\"null\"/>")){
+						System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&中转：");							
+						String retTransferhtml = rethtml.replaceFirst("class=\"vuelo_escala\">", "");							
+						if(retTransferhtml.contains("class=\"vuelo_escala\">")){
+							retTransferhtml = org.apache.commons.lang.StringUtils.substringBetween(retTransferhtml, "class=\"vuelo_escala\">", "<tr class");
+							retTransferhtml = retTransferhtml.replaceAll("\n", "");
+							retTransferhtml = retTransferhtml.replaceAll("\t", "");
+							retTransferhtml = retTransferhtml.replaceAll(" ", "");
+							FlightSegement retTransferSeg = new FlightSegement();
+							boolean retTransferDepDate = true;
+							String retTransferFlightinfo = org.apache.commons.lang.StringUtils.substringBetween(retTransferhtml,"<input", "</td></tr>");						
+							if(null == retTransferFlightinfo){
 								break;
 							}
-							retFlightinfo = retFlightinfo.replaceAll("\t", "");
-							retFlightinfo = retFlightinfo.replaceAll(" ", "");
 							
-							Matcher retMatcherFlightNo = Pattern.compile("id=\"idNumFlight_.*\"value=\"(.*)\"").matcher(retFlightinfo);
-							if(retMatcherFlightNo.find()){
-								System.out.println("flightNo: " + retMatcherFlightNo.group(1));
-								String flightNo = retMatcherFlightNo.group(1);
+							Matcher retTransferMatcherFlightNo = Pattern.compile("id=\"idNumFlight_.*\"value=\"(.*)\"").matcher(retTransferFlightinfo);
+							if(retTransferMatcherFlightNo.find()){
+								System.out.println("flightNo: " + retTransferMatcherFlightNo.group(1));
+								String flightNo = retTransferMatcherFlightNo.group(1);
 								retFlightNoList.add(flightNo);
-								retSeg.setFlightno(flightNo);
+								retTransferSeg.setFlightno(flightNo);
 							}
 							
-							Matcher retMatcher = Pattern.compile("type=\"hidden\"value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>\\w*\\((\\w{3})\\)").matcher(retFlightinfo);
-							while(retMatcher.find()){
-								System.out.println("------------------------------------------------------------------------------");							
-								if(retDepDate){
-									System.out.println("出发时间："+retMatcher.group(1)+"\t"+retMatcher.group(2));
-									retSeg.setDeptime(retMatcher.group(2));
-									Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(retMatcher.group(1));
-									retSeg.setDepDate(sf.format(date));
-									System.out.println("始发地："+retMatcher.group(3));
-									retSeg.setDepairport(retMatcher.group(3));
-									retDepDate = false;
+							Matcher retTransferMatcher = Pattern.compile("type=\"hidden\"value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>\\w*\\((\\w{3})\\)").matcher(retTransferFlightinfo);
+							while(retTransferMatcher.find()){
+								System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");							
+								if(retTransferDepDate){
+									System.out.println("出发时间："+retTransferMatcher.group(1)+"\t"+retTransferMatcher.group(2));
+									retTransferSeg.setDeptime(retTransferMatcher.group(2));
+									Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(retTransferMatcher.group(1));
+									retTransferSeg.setDepDate(sf.format(date));
+									System.out.println("始发地："+retTransferMatcher.group(3));
+									retTransferSeg.setDepairport(retTransferMatcher.group(3));
+									retTransferDepDate = false;
 								}else{
-									System.out.println("到达时间："+retMatcher.group(1)+"\t"+retMatcher.group(2));
-									retSeg.setArrtime(retMatcher.group(2));
-									Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(retMatcher.group(1));
-									retSeg.setArrDate(sf.format(date));
-									System.out.println("目的地："+retMatcher.group(3));
-									retSeg.setArrairport(retMatcher.group(3));
+									System.out.println("到达时间："+retTransferMatcher.group(1)+"\t"+retTransferMatcher.group(2));
+									retTransferSeg.setArrtime(retTransferMatcher.group(2));
+									Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(retTransferMatcher.group(1));
+									retTransferSeg.setArrDate(sf.format(date));
+									System.out.println("目的地："+retTransferMatcher.group(3));
+									retTransferSeg.setArrairport(retTransferMatcher.group(3));
 								}
 							}												
 							
-							retSegs.add(retSeg);
-							
-							boolean retTransfer = false; //是否中转
-							if(retFlightinfo.contains("<inputtype=\"hidden\"value=\"null\"/>")){
-								System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&中转：");							
-								String retTransferhtml = rethtml.replaceFirst("class=\"vuelo_escala\">", "");							
-								if(retTransferhtml.contains("class=\"vuelo_escala\">")){
-									retTransferhtml = org.apache.commons.lang.StringUtils.substringBetween(retTransferhtml, "class=\"vuelo_escala\">", "<tr class");
-									retTransferhtml = retTransferhtml.replaceAll("\n", "");
-									retTransferhtml = retTransferhtml.replaceAll("\t", "");
-									retTransferhtml = retTransferhtml.replaceAll(" ", "");
-									FlightSegement retTransferSeg = new FlightSegement();
-									boolean retTransferDepDate = true;
-									String retTransferFlightinfo = org.apache.commons.lang.StringUtils.substringBetween(retTransferhtml,"<input", "</td></tr>");						
-									if(null == retTransferFlightinfo){
-										break;
-									}
-									
-									Matcher retTransferMatcherFlightNo = Pattern.compile("id=\"idNumFlight_.*\"value=\"(.*)\"").matcher(retTransferFlightinfo);
-									if(retTransferMatcherFlightNo.find()){
-										System.out.println("flightNo: " + retTransferMatcherFlightNo.group(1));
-										String flightNo = retTransferMatcherFlightNo.group(1);
-										retFlightNoList.add(flightNo);
-										retTransferSeg.setFlightno(flightNo);
-									}
-									
-									Matcher retTransferMatcher = Pattern.compile("type=\"hidden\"value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>\\w*\\((\\w{3})\\)").matcher(retTransferFlightinfo);
-									while(retTransferMatcher.find()){
-										System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");							
-										if(retTransferDepDate){
-											System.out.println("出发时间："+retTransferMatcher.group(1)+"\t"+retTransferMatcher.group(2));
-											retTransferSeg.setDeptime(retTransferMatcher.group(2));
-											Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(retTransferMatcher.group(1));
-											retTransferSeg.setDepDate(sf.format(date));
-											System.out.println("始发地："+retTransferMatcher.group(3));
-											retTransferSeg.setDepairport(retTransferMatcher.group(3));
-											retTransferDepDate = false;
-										}else{
-											System.out.println("到达时间："+retTransferMatcher.group(1)+"\t"+retTransferMatcher.group(2));
-											retTransferSeg.setArrtime(retTransferMatcher.group(2));
-											Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(retTransferMatcher.group(1));
-											retTransferSeg.setArrDate(sf.format(date));
-											System.out.println("目的地："+retTransferMatcher.group(3));
-											retTransferSeg.setArrairport(retTransferMatcher.group(3));
-										}
-									}												
-									
-									retSegs.add(retTransferSeg);
-									retTransfer = true;
-								}
-							}
-							
-							System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-//						}
-//					}
+							retSegs.add(retTransferSeg);
+							retTransfer = true;
+						}
+					}
+					System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
 					String retPriceinfo = org.apache.commons.lang.StringUtils.substringBetween(retTempTable,"class=\"cajaPrecioTarifa\"", "<p class=\"txt_ult_plazas\">");
 					retPriceinfo = retPriceinfo.replace("\t", "");
@@ -455,8 +418,6 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 					retBaseFlight.setInfo(retSegs);
 					flightList.add(retBaseFlight);
 					
-					
-					
 					System.out.println("\r\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\r\n");
 					
 					rethtml = rethtml.replaceFirst("class=\"vuelo_escala\">", "");
@@ -464,26 +425,7 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 						rethtml = rethtml.replaceFirst("class=\"vuelo_escala\">", "");					
 					}
 				}
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
+
 				System.out.println("\r\n====================================================================================================================================================\r\n");
 				
 				tablehtml = tablehtml.replaceFirst("class=\"vuelo_escala\">", "");
