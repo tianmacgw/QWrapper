@@ -1,6 +1,5 @@
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -28,20 +27,6 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 	public static void main(String[] args) {
 
 		FlightSearchParam searchParam = new FlightSearchParam();
-		
-		//ALC-CPH 2014-06-30
-		//AMS-ATH 2014-09-13
-		//ALC-DUB 2014-06-30
-//		searchParam.setDep("MAD");
-//		searchParam.setArr("ALC");
-//		searchParam.setDepDate("2014-06-26");
-//		searchParam.setRetDate("2014-06-30");
-		
-//		searchParam.setDep("DUB");
-//		searchParam.setArr("ALC");
-//		searchParam.setDepDate("2014-06-26");
-//		searchParam.setRetDate("2014-06-30");
-//		searchParam.setTimeOut("60000");
 		
 		searchParam.setDep("DUS");
 		searchParam.setArr("ALC");
@@ -218,28 +203,6 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 					System.out.println("目的地："+arrMatcher.group(3));
 					seg.setArrairport(arrMatcher.group(3));
 				}
-				
-				
-				/*while(matcher.find()){
-					System.out.println("------------------------------------------------------------------------------");							
-					if(depDate){
-						System.out.println("出发时间："+matcher.group(1)+"\t"+matcher.group(2));
-						seg.setDeptime(matcher.group(2));
-						Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(matcher.group(1));
-						seg.setDepDate(sf.format(date));
-						System.out.println("始发地："+matcher.group(3));
-						seg.setDepairport(matcher.group(3));
-						depDate = false;
-					}else{
-						System.out.println("到达时间："+matcher.group(1)+"\t"+matcher.group(2));
-						seg.setArrtime(matcher.group(2));
-						Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(matcher.group(1));
-						seg.setArrDate(sf.format(date));
-						System.out.println("目的地："+matcher.group(3));
-						seg.setArrairport(matcher.group(3));
-					}
-				}*/	
-				
 				segs.add(seg);
 				
 				boolean transfer = false; //是否中转
@@ -287,28 +250,6 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 							System.out.println("目的地："+arrTransferMatcher.group(3));
 							transferSeg.setArrairport(arrTransferMatcher.group(3));
 						}
-						
-						/*Matcher transferMatcher = Pattern.compile("type=\"hidden\"value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>\\w*\\((\\w{3})\\)").matcher(transferFlightinfo);
-						while(transferMatcher.find()){
-							System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");							
-							if(transferDepDate){
-								System.out.println("出发时间："+transferMatcher.group(1)+"\t"+transferMatcher.group(2));
-								transferSeg.setDeptime(transferMatcher.group(2));
-								Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(transferMatcher.group(1));
-								transferSeg.setDepDate(sf.format(date));
-								System.out.println("始发地："+transferMatcher.group(3));
-								transferSeg.setDepairport(transferMatcher.group(3));
-								transferDepDate = false;
-							}else{
-								System.out.println("到达时间："+transferMatcher.group(1)+"\t"+transferMatcher.group(2));
-								transferSeg.setArrtime(transferMatcher.group(2));
-								Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(transferMatcher.group(1));
-								transferSeg.setArrDate(sf.format(date));
-								System.out.println("目的地："+transferMatcher.group(3));
-								transferSeg.setArrairport(transferMatcher.group(3));
-							}
-						}*/												
-						
 						segs.add(transferSeg);
 						transfer = true;
 					}
@@ -384,28 +325,6 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 						System.out.println("目的地："+arrRetMatcher.group(3));
 						retSeg.setArrairport(arrRetMatcher.group(3));
 					}
-					
-					/*Matcher retMatcher = Pattern.compile("type=\"hidden\"value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>\\w*\\((\\w{3})\\)").matcher(retFlightinfo);
-					while(retMatcher.find()){
-						System.out.println("------------------------------------------------------------------------------");							
-						if(retDepDate){
-							System.out.println("出发时间："+retMatcher.group(1)+"\t"+retMatcher.group(2));
-							retSeg.setDeptime(retMatcher.group(2));
-							Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(retMatcher.group(1));
-							retSeg.setDepDate(sf.format(date));
-							System.out.println("始发地："+retMatcher.group(3));
-							retSeg.setDepairport(retMatcher.group(3));
-							retDepDate = false;
-						}else{
-							System.out.println("到达时间："+retMatcher.group(1)+"\t"+retMatcher.group(2));
-							retSeg.setArrtime(retMatcher.group(2));
-							Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(retMatcher.group(1));
-							retSeg.setArrDate(sf.format(date));
-							System.out.println("目的地："+retMatcher.group(3));
-							retSeg.setArrairport(retMatcher.group(3));
-						}
-					}*/										
-					
 					retSegs.add(retSeg);
 					
 					boolean retTransfer = false; //是否中转
@@ -452,29 +371,6 @@ public class Wrapper_gjsairi2001 implements QunarCrawler{
 								System.out.println("目的地："+arrRetTransferMatcher.group(3));
 								retTransferSeg.setArrairport(arrRetTransferMatcher.group(3));
 							}
-							
-							
-							/*Matcher retTransferMatcher = Pattern.compile("type=\"hidden\"value=\"(\\d*)\"/><strong>(\\d*:\\d*)</strong>\\w*\\((\\w{3})\\)").matcher(retTransferFlightinfo);
-							while(retTransferMatcher.find()){
-								System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");							
-								if(retTransferDepDate){
-									System.out.println("出发时间："+retTransferMatcher.group(1)+"\t"+retTransferMatcher.group(2));
-									retTransferSeg.setDeptime(retTransferMatcher.group(2));
-									Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(retTransferMatcher.group(1));
-									retTransferSeg.setDepDate(sf.format(date));
-									System.out.println("始发地："+retTransferMatcher.group(3));
-									retTransferSeg.setDepairport(retTransferMatcher.group(3));
-									retTransferDepDate = false;
-								}else{
-									System.out.println("到达时间："+retTransferMatcher.group(1)+"\t"+retTransferMatcher.group(2));
-									retTransferSeg.setArrtime(retTransferMatcher.group(2));
-									Date date = new SimpleDateFormat("yyyyMMddHHmm").parse(retTransferMatcher.group(1));
-									retTransferSeg.setArrDate(sf.format(date));
-									System.out.println("目的地："+retTransferMatcher.group(3));
-									retTransferSeg.setArrairport(retTransferMatcher.group(3));
-								}
-							}*/												
-							
 							retSegs.add(retTransferSeg);
 							retTransfer = true;
 						}
